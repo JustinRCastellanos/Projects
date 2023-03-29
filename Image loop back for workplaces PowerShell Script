@@ -1,0 +1,66 @@
+# Bypass the PowerShell execution policy
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Bypass -Force -ErrorAction SilentlyContinu
+
+Add-Type -AssemblyName System.Windows.Forms
+
+# Define a function to get a random car image URL
+function Get-RandomCarImage {
+    $usedUrls = @()
+    do {
+        $url = $url = "https://loremflickr.com/320/240/car"
+
+        $Headers = @{
+            'User-Agent' = 'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT; Windows NT 10.0; en-US)'
+        }
+        $response = Invoke-WebRequest -Uri $url -Headers $Headers -UseBasicParsing
+        $imageUrl = $response.BaseResponse.ResponseUri.AbsoluteUri
+    } until (-not ($usedUrls -contains $imageUrl))
+    $usedUrls += $imageUrl
+    $imageUrl
+}
+
+# Set the number of car images to display
+$numImages = 6
+
+# Loop through and display each car image
+for ($i = 1; $i -le $numImages; $i++) {
+    # Get a random car image URL
+    $randomCarImage = Get-RandomCarImage
+
+    # Download the random car image to a temporary file
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    Invoke-WebRequest -Uri $randomCarImage -Headers $Headers -OutFile $tempFile
+
+    # Create a new form object and set its properties
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = "Random Car Image"
+    $form.Width = 400
+    $form.Height = 400
+    $form.StartPosition = "CenterScreen"
+    $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Fixed3D
+
+    # Create a new picture box object and set its properties
+    $pictureBox = New-Object System.Windows.Forms.PictureBox
+    $pictureBox.Width = $form.Width
+    $pictureBox.Height = $form.Height
+    $pictureBox.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
+    $pictureBox.Image = [System.Drawing.Image]::FromFile($tempFile)
+
+    # Add the picture box object to the form
+    $form.Controls.Add($pictureBox)
+
+    # Show the form as a dialog box and wait for the user to close it
+    $dialogResult = $form.ShowDialog()
+
+    # Clean up the temporary file
+    try {
+        Remove-Item $tempFile -Force
+    } catch {
+        # Ignore the error and continue with the script
+    }
+}
+
+# Display a pop-up message with a greeting
+$message = "Have a great shift!"
+$title = "Greetings"
+[System.Windows.Forms.MessageBox]::Show($message, $title, [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
