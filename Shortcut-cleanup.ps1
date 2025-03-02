@@ -1,4 +1,4 @@
-# Define directories where shortcuts might be located
+﻿# Define directories where shortcuts might be located
 $desktopFolder = [System.Environment]::GetFolderPath('Desktop')
 $startMenuFolder = [System.Environment]::GetFolderPath('StartMenu')
 
